@@ -1,4 +1,4 @@
-OpenOffice/OOBuilder version 0.05
+OpenOffice/OOBuilder version 0.07
 =================================
 
 This is a collection of modules to create OpenOffice documents. 
@@ -25,8 +25,15 @@ PREREQUISITES
 
 In order to install and use this package you will need Perl version
 5.8.0 or better (although I don't expect problems with older versions, 
-but I didn't test them).  If you intend to use the OpenOffice::OOBuilder 
-you need to have access to a zip program.
+but I didn't test them).  
+
+Other packages needed:  
+  Archive::Zip
+    If you don't want to use this, and you are on a Linux system with 
+    access to a zip program, take a look at the OOBuilder.pm file, search
+    for 'zip', and you will find some instructions how to change this.
+    If you do so, please let me know. If enough people want this to be 
+    an option, I'll try to implement that in one of the next releases.
 
 INSTALLATION
 
@@ -42,11 +49,11 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
   perl 5.8.0
-  zip
+  Archive::Zip
 
 COPYRIGHT AND LICENCE
 
-  Copyright (C) 2004 Stefan Loones
+  Copyright (C) 2004, 2005 Stefan Loones
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

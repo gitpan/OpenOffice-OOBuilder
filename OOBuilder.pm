@@ -1,6 +1,6 @@
 package OpenOffice::OOBuilder;
 
-# Copyright 2004, Stefan Loones
+# Copyright 2004, 2005 Stefan Loones
 # More info can be found at http://www.maygill.com/oobuilder
 #
 # This library is free software; you can redistribute it and/or
@@ -10,9 +10,10 @@ use 5.008;                   # lower versions not tested
 use strict;
 use warnings;
 no warnings 'uninitialized';  # don't want this, because we use strict
+use Archive::Zip;
 
 my ($VERSION, %COLORS, $MINFONTSIZE, $MAXFONTSIZE);
-$VERSION=sprintf("%d.%02d", q$Revision: 0.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION=sprintf("%d.%02d", q$Revision: 0.8 $ =~ /(\d+)\.(\d+)/);
 %COLORS=('red' => 'ff0000', 'green' => '00ff00', 'blue' => '0000ff', 
          'white' => 'ffffff', 'black' => '000000');
 $MINFONTSIZE=6;
@@ -317,13 +318,25 @@ sub generate {
   close (TGT);
   
   # - Build compressed target file
-  system("cd $self->{builddir}; zip -r '$tgtfile' mimetype &> /dev/null");
-  system("cd $self->{builddir}; zip -r '$tgtfile' content.xml &> /dev/null");
-  system("cd $self->{builddir}; zip -r '$tgtfile' styles.xml &> /dev/null");
-  system("cd $self->{builddir}; zip -r '$tgtfile' meta.xml &> /dev/null");
-  system("cd $self->{builddir}; zip -r '$tgtfile' settings.xml &> /dev/null");
-  system("cd $self->{builddir}; zip -r '$tgtfile' META-INF/manifest.xml &> /dev/null");
-# ** from michael (to test): /dev/null 2>&1 &
+  # windows support added by using Archive::Zip
+  # thanks to Magnus Nufer
+  my $zip = Archive::Zip->new();
+  $zip->addFile(qq{$self->{builddir}/mimetype}, 'mimetype');
+  $zip->addFile(qq{$self->{builddir}/content.xml}, 'content.xml');
+  $zip->addFile(qq{$self->{builddir}/styles.xml}, 'styles.xml');
+  $zip->addFile(qq{$self->{builddir}/meta.xml}, 'meta.xml');
+  $zip->addFile(qq{$self->{builddir}/settings.xml}, 'settings.xml');
+  $zip->addFile(qq{$self->{builddir}/META-INF/manifest.xml}, 'META-INF/manifest.xml');
+  my $status = $zip->overwriteAs($tgtfile);
+# if you are on a Linux system with zip available and you don't want to 
+# use Archive::Zip, you could use the following 6 lines, and comment out the 
+# above 8 lines and of course the 'use Archive::Zip' statement at the top
+#   system("cd $self->{builddir}; zip -r '$tgtfile' mimetype &> /dev/null");
+#   system("cd $self->{builddir}; zip -r '$tgtfile' content.xml &> /dev/null");
+#   system("cd $self->{builddir}; zip -r '$tgtfile' styles.xml &> /dev/null");
+#   system("cd $self->{builddir}; zip -r '$tgtfile' meta.xml &> /dev/null");
+#   system("cd $self->{builddir}; zip -r '$tgtfile' settings.xml &> /dev/null");
+#   system("cd $self->{builddir}; zip -r '$tgtfile' META-INF/manifest.xml &> /dev/null");
 
   # - remove workfiles & directory
   unlink("$self->{builddir}/mimetype");
@@ -613,7 +626,7 @@ Stefan Loones
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2004 by Stefan Loones
+Copyright 2004, 2005 by Stefan Loones
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

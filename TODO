@@ -24,7 +24,7 @@ TODO - OOCBuilder
   - numeric styles / cell format
   - cell-format ? (seems with numeric styles, not possible in cell directly)
   - defrowheight : default row height
-  - in sub set_sheet_name : process name: check valid characters en length ?!
+  - in sub set_sheet_name : process name: check valid characters and length ?!
   - in sub set_colwidth : do we need to check $width ?
 
 TESTS

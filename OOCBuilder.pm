@@ -1,7 +1,7 @@
 package OpenOffice::OOCBuilder;
 
 
-# Copyright 2004, Stefan Loones
+# Copyright 2004, 2005 Stefan Loones
 # More info can be found at http://www.maygill.com/oobuilder
 #
 # This library is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@ use OpenOffice::OOBuilder;
 our (@ISA);
 @ISA=qw(OpenOffice::OOBuilder);
 
-my $VERSION=sprintf("%d.%02d", q$Revision: 0.7 $ =~ /(\d+)\.(\d+)/);
+my $VERSION=sprintf("%d.%02d", q$Revision: 0.8 $ =~ /(\d+)\.(\d+)/);
 
 my ($MAXC, $MAXR, $MAXSHEETS, @TYPES);
 $MAXC=256;     # is column IV
@@ -707,7 +707,7 @@ Stefan Loones
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2004 by Stefan Loones
+Copyright 2004, 2005 by Stefan Loones
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

@@ -5,9 +5,10 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 BEGIN { use_ok('OpenOffice::OOBuilder');
         use_ok('OpenOffice::OOCBuilder');
+        use_ok('Archive::Zip');
       };
 
 #########################
