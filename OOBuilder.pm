@@ -12,7 +12,7 @@ use warnings;
 no warnings 'uninitialized';  # don't want this, because we use strict
 
 my ($VERSION, %COLORS, $MINFONTSIZE, $MAXFONTSIZE);
-$VERSION=sprintf("%d.%02d", q$Revision: 0.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION=sprintf("%d.%02d", q$Revision: 0.7 $ =~ /(\d+)\.(\d+)/);
 %COLORS=('red' => 'ff0000', 'green' => '00ff00', 'blue' => '0000ff', 
          'white' => 'ffffff', 'black' => '000000');
 $MINFONTSIZE=6;

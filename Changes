@@ -7,6 +7,8 @@ Attention: make sure the word <oobuilder> is in the subject or
 body of your e-mail. Otherwhise your e-mail will be taken as 
 spam and will not be read.
 
+0.07 11/11/2004
+       OOCBuilder: right-align didn't work: fixed
 0.06 12/09/2004
        OOCBuilder: getters for location of active cell in numbers
                    cell id's : spreadsheet notation like A5, AD516, ... 

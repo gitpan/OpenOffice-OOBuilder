@@ -15,7 +15,7 @@ use OpenOffice::OOBuilder;
 our (@ISA);
 @ISA=qw(OpenOffice::OOBuilder);
 
-my $VERSION=sprintf("%d.%02d", q$Revision: 0.6 $ =~ /(\d+)\.(\d+)/);
+my $VERSION=sprintf("%d.%02d", q$Revision: 0.7 $ =~ /(\d+)\.(\d+)/);
 
 my ($MAXC, $MAXR, $MAXSHEETS, @TYPES);
 $MAXC=256;     # is column IV
@@ -414,6 +414,7 @@ qq{<style:style style:name="$cellstyleids{$style}" style:family="table-cell" sty
       $xml.=qq{ fo:background-color="#$bgcolor"};
     }
     if ($align ne $defalign) {
+      $align='end' if ($align eq 'right');
       $xml.=qq{ fo:text-align="$align" style:text-align-source="fix" fo:margin-left="0inch"};
     }
     if ($txtcolor ne $deftxtcolor) {
