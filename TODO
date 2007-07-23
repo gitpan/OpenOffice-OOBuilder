@@ -1,4 +1,4 @@
-TODO / whishlist for Perl extensions 
+TODO / whishlist for Perl extensions
   OpenOffice::OOBuilder
   OpenOffice::OOCBuilder
 
@@ -7,9 +7,9 @@ This list is certainly not complete.
 TODO - OOBuilder
   - get_meta : best way to return it: array, hash or ?
   - getters for active style
-    not yet implemented because in the future we will probably add 
+    not yet implemented because in the future we will probably add
     ways to get the style of a specifique cell or location
-    maybe we also add the possibility to read an existing document, and make 
+    maybe we also add the possibility to read an existing document, and make
     changes to it. This all makes that we have to be careful about this.
   - Extra setters/getters for meta.xml
      <dc:language>en-US</dc:language>
@@ -26,6 +26,7 @@ TODO - OOCBuilder
   - defrowheight : default row height
   - in sub set_sheet_name : process name: check valid characters and length ?!
   - in sub set_colwidth : do we need to check $width ?
+  - set autofilter ?
 
 TESTS
   - test if zip is available

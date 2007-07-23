@@ -1,6 +1,6 @@
 package OpenOffice::OOBuilder;
 
-# Copyright 2004, 2005 Stefan Loones
+# Copyright 2004, 2007 Stefan Loones
 # More info can be found at http://www.maygill.com/oobuilder
 #
 # This library is free software; you can redistribute it and/or
@@ -13,8 +13,8 @@ no warnings 'uninitialized';  # don't want this, because we use strict
 use Archive::Zip;
 
 my ($VERSION, %COLORS, $MINFONTSIZE, $MAXFONTSIZE);
-$VERSION=sprintf("%d.%02d", q$Revision: 0.8 $ =~ /(\d+)\.(\d+)/);
-%COLORS=('red' => 'ff0000', 'green' => '00ff00', 'blue' => '0000ff', 
+$VERSION=sprintf("%d.%02d", q$Revision: 0.9 $ =~ /(\d+)\.(\d+)/);
+%COLORS=('red' => 'ff0000', 'green' => '00ff00', 'blue' => '0000ff',
          'white' => 'ffffff', 'black' => '000000');
 $MINFONTSIZE=6;
 $MAXFONTSIZE=96;
@@ -34,7 +34,7 @@ sub new {
   $self->{tgt_file}   = 'oo_doc';
   $self->{meta}       = undef;
   $self->{log}        = 0;
-  
+
   # - Init available fonts
   $self->{availfonts}{Arial}=q{<style:font-decl style:name="Arial" fo:font-family="Arial" style:font-family-generic="swiss" style:font-pitch="variable"/>};
   $self->{availfonts}{'Bitstream Vera Sans'}=q{<style:font-decl style:name="Bitstream Vera Sans" fo:font-family="\&apos;Bitstream Vera Sans\&apos;" style:font-pitch="variable"/>};
@@ -158,9 +158,9 @@ sub set_meta {
 # - Setters for active style
 
 # ** TODO getters for active style
-# not yet implemented because in the future we will probably add 
+# not yet implemented because in the future we will probably add
 # ways to get the style of a specifique cell or location
-# maybe we also add the possibility to read an existing document, and make 
+# maybe we also add the possibility to read an existing document, and make
 # changes to it. This all makes that we have to be careful about this.
 
 sub set_bold {
@@ -199,7 +199,7 @@ sub set_underline {
 sub set_align {
   my ($self, $align)=@_;
   $align=lc($align);
-  if ($align eq 'right' || $align eq 'center' || $align eq 'justify' || 
+  if ($align eq 'right' || $align eq 'center' || $align eq 'justify' ||
       $align eq 'left') {
     $self->{style}{align}=$align;
     $self->_set_active_style;
@@ -264,12 +264,12 @@ sub get_builddir {
 # - * - PrivateMethods
 sub generate {
   my ($self, $tgtfile)=@_;
-  
+
   # - check workdirectory & filename
   $self->{builddir}='.' unless (-d $self->{builddir});
   $tgtfile='oo_doc' unless ($tgtfile);
   $tgtfile.=qq{.$self->{oooType}};
-    
+
   # - Available Document types and their mime types
   my (%mimetype);
   # Text - oowriter - sxw - OOWBuilder
@@ -282,21 +282,21 @@ sub generate {
   $mimetype{sxi}='application/vnd.sun.xml.impress';
   # Formula - oomath - OOMBuilder
   $mimetype{sxm}='application/vnd.sun.xml.math';
-# ** TODO  
+# ** TODO
   # Chart            application/vnd.sun.xml.chart
-  # Master Document  application/vnd.sun.xml.writer.global 
-  
+  # Master Document  application/vnd.sun.xml.writer.global
+
   # - Generate mimetype.xml
   open TGT, qq{>$self->{builddir}/mimetype};
   print TGT $mimetype{$self->{oooType}};
   close TGT;
-  
-  # - Generate content.xml 
+
+  # - Generate content.xml
   #   (must be build by the derived class and put into $self->{contentxml})
   open TGT, qq{>$self->{builddir}/content.xml};
   print TGT $self->{contentxml};
   close TGT;
-  
+
   # - Generate meta.xml, styles.xml, settings.xml
   $self->_generate_meta;
   $self->_generate_styles;
@@ -316,7 +316,7 @@ sub generate {
  <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="settings.xml" />
 </manifest:manifest>};
   close (TGT);
-  
+
   # - Build compressed target file
   # windows support added by using Archive::Zip
   # thanks to Magnus Nufer
@@ -328,8 +328,8 @@ sub generate {
   $zip->addFile(qq{$self->{builddir}/settings.xml}, 'settings.xml');
   $zip->addFile(qq{$self->{builddir}/META-INF/manifest.xml}, 'META-INF/manifest.xml');
   my $status = $zip->overwriteAs($tgtfile);
-# if you are on a Linux system with zip available and you don't want to 
-# use Archive::Zip, you could use the following 6 lines, and comment out the 
+# if you are on a Linux system with zip available and you don't want to
+# use Archive::Zip, you could use the following 6 lines, and comment out the
 # above 8 lines and of course the 'use Archive::Zip' statement at the top
 #   system("cd $self->{builddir}; zip -r '$tgtfile' mimetype &> /dev/null");
 #   system("cd $self->{builddir}; zip -r '$tgtfile' content.xml &> /dev/null");
@@ -358,7 +358,7 @@ sub _generate_meta {
   my ($timestamp, $keywords);
   $timestamp=$self->_oo_timestamp;
   $keywords=join('',map qq{<meta:keyword>$_</meta:keyword>}, @{$self->{meta}{keywords}});
-  
+
   # - user defined vars
   my ($meta, $name, $value, @tmp);
   for (1 .. 4) {
@@ -375,9 +375,9 @@ sub _generate_meta {
       $meta.=qq{<meta:user-defined meta:name="$name"/>};
     }
   }
-    
+
   open (TGT, qq{>$self->{builddir}/meta.xml});
-  print TGT 
+  print TGT
 qq{<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE office:document-meta PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "office.dtd">
 <office:document-meta xmlns:office="http://openoffice.org/2000/office" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://openoffice.org/2000/meta" office:version="1.0">
@@ -405,19 +405,19 @@ $meta
 sub _generate_styles {
   my ($self);
   $self=shift;
-  
+
 # ** TODO
 
   1;
 }   # - - End _generate_styles
 
-  
+
 sub _generate_settings {
   my ($self);
   $self=shift;
 
 # ** TODO
-    
+
   1;
 }   # - - End _generate_settings
 
@@ -450,13 +450,12 @@ sub _oo_timestamp {
 
 sub encode_data {
   my ($self, $data)=@_;
+  $data=~ s/\&/\&amp;/g;
   $data=~ s/</\&lt;/g;
   $data=~ s/>/\&gt;/g;
   $data=~ s/'/\&apos;/g;
   $data=~ s/"/\&quot;/g;
-  $data=~ s/\&/\&amp;/g;
   $data=~ s/\t/<text:tab-stop\/>/g;
-  $data=~ s/([^\x20-\x7F])/'&#' . ord($1) . ';'/gse; # from http://perl-xml.sourceforge.net/faq/#encoding_conversion
   return $data;
 }
 
@@ -466,7 +465,7 @@ __END__
 
 =head1 NAME
 
-OpenOffice::OOBuilder - Perl OO interface for creating OpenOffice 
+OpenOffice::OOBuilder - Perl OO interface for creating OpenOffice
 documents.
 
 =head1 SYNOPSIS
@@ -475,10 +474,10 @@ See the documentation of the derived classes.
 
 =head1 DESCRIPTION
 
-OOBuilder is a Perl OO interface for creating OpenOffice documents. 
-OOBuilder is the base class for all OpenOffice documents. Depending 
+OOBuilder is a Perl OO interface for creating OpenOffice documents.
+OOBuilder is the base class for all OpenOffice documents. Depending
 on the type of document you want to create you have to use a
-derived class. 
+derived class.
 
 At this moment only spreadsheet (sxc) documents are supported. See
 the documentation of the derived class OOCBuilder for more information.
@@ -536,7 +535,7 @@ get_keywords
 
 set_meta ($nb, $name, $value)
 
-  Set meta data. $nb is the meta number (between 1 and 4). 
+  Set meta data. $nb is the meta number (between 1 and 4).
   $name is the name of your meta data. If ommited we'll take "meta$nb".
   $value is the new value of your meta data.
 
@@ -564,15 +563,15 @@ set_align ($align)
 set_txtcolor ($txtcolor)
 
   Set the text color. $txtcolor can be a predefined value like red,
-  green, blue, white or black. Or it can be specified in RGB in the 
-  form ff0000 (ie. as red). This returns 0 if the color can't be 
+  green, blue, white or black. Or it can be specified in RGB in the
+  form ff0000 (ie. as red). This returns 0 if the color can't be
   set.
 
 set_bgcolor ($bgcolor)
 
   Set the text color. $bgcolor can be a predefined value like red,
-  green, blue, white or black. Or it can be specified in RGB in the 
-  form ff0000 (ie. as red). This returns 0 if the color can't be 
+  green, blue, white or black. Or it can be specified in RGB in the
+  form ff0000 (ie. as red). This returns 0 if the color can't be
   set.
 
 set_font ($font)
@@ -580,7 +579,7 @@ set_font ($font)
   Available fonts are : Arial, Bitstream Vera Sans, Bitstream Vera Serif,
   Bookman, Courier, Courier 10 Pitch, Helvetica, Lucidabright, Lucidasans,
   Lucida Sans Unicode, Lucidatypewriter, Luxi Mono, Luxi Sans, Luxi Serif,
-  Symbol, Tahoma, Times, Times New Roman, Utopia, Zapf Chancery, 
+  Symbol, Tahoma, Times, Times New Roman, Utopia, Zapf Chancery,
   Zapf Dingbats.
   Returns 0 if the font isn't available.
 
@@ -591,17 +590,17 @@ set_fontsize ($size)
 set_builddir ($builddir)
 
   Set build directory. The target file will be placed in this directory.
-  This directory will also be used for creating the temporary files, 
+  This directory will also be used for creating the temporary files,
   needed for creating the target file. Builddir is '.' by default.
   Returns 0 if the $builddir doesn't exist.
 
-get_builddir 
+get_builddir
 
   Returns the build directory.
 
 generate ($tgtfile)
 
-  Don't call this method directly. This method should be called from 
+  Don't call this method directly. This method should be called from
   the derived class.
 
 =head1 EXAMPLES
@@ -614,9 +613,9 @@ L<OpenOffice::OOCBuilder> for creating spreadsheets.
 
 http://www.maygill.com/oobuilder
 
-Bug reports and questions can be sent to <oobuilder(at)maygill.com>. 
-Attention: make sure the word <oobuilder> is in the subject or 
-body of your e-mail. Otherwhise your e-mail will be taken as 
+Bug reports and questions can be sent to <oobuilder(at)maygill.com>.
+Attention: make sure the word <oobuilder> is in the subject or
+body of your e-mail. Otherwhise your e-mail will be taken as
 spam and will not be read.
 
 
@@ -629,6 +628,6 @@ Stefan Loones
 Copyright 2004, 2005 by Stefan Loones
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut

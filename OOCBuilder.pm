@@ -1,13 +1,12 @@
 package OpenOffice::OOCBuilder;
 
-
-# Copyright 2004, 2005 Stefan Loones
+# Copyright 2004, 2007 Stefan Loones
 # More info can be found at http://www.maygill.com/oobuilder
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
-use v5.8.0;                   # lower versions not tested
+use 5.008;                   # lower versions not tested
 use strict;
 use warnings;
 no warnings 'uninitialized';  # don't want this, because we use strict
@@ -15,19 +14,18 @@ use OpenOffice::OOBuilder;
 our (@ISA);
 @ISA=qw(OpenOffice::OOBuilder);
 
-my $VERSION=sprintf("%d.%02d", q$Revision: 0.8 $ =~ /(\d+)\.(\d+)/);
+my $VERSION=sprintf("%d.%02d", q$Revision: 0.9 $ =~ /(\d+)\.(\d+)/);
 
 my ($MAXC, $MAXR, $MAXSHEETS, @TYPES);
 $MAXC=256;     # is column IV
 $MAXR=32000;
-$MAXSHEETS=10;
+$MAXSHEETS=64;
 # - possible types ($TYPES[0] is default type)
 @TYPES=('standard', 'text', 'float', 'formula');
 
-
-# ** TODO push & pop cell locations (incl sheetnb) - to make formulas easier to construct
-#         create tags for cell locations
-#         cell-format ? (seems with numeric styles, not possible in cell directly)
+# TODO push & pop cell locations (incl sheetnb) - to make formulas easier to construct
+#      create tags for cell locations
+#      cell-format ? (seems with numeric styles, not possible in cell directly)
 
 # - Object constructor
 #
@@ -40,14 +38,14 @@ sub new {
   $self->{actsheet}=1;
   $self->{act}{1}{c}=1;       # {act}{sheetnb}{c}=
   $self->{act}{1}{r}=1;
-  
-  # - general data (parameters)  
+
+  # - general data (parameters)
   $self->{cpars}{sheets}=1;
   $self->{cpars}{autoc}=0;
   $self->{cpars}{autor}=0;
-  
+
   # - data
-  $self->{cdata}    = undef;    # {cdata}{sheetnb}{}{} 
+  $self->{cdata}    = undef;    # {cdata}{sheetnb}{}{}
   $self->{sheetname}= undef;    # {sheetname}{sheetnb}=name
   $self->{cstyle}   = undef;    # {cstyle}{sheetnb}{}{}
   $self->{colwidth} = undef;    # {colwidth}{sheetnb}{c}
@@ -56,7 +54,7 @@ sub new {
   # - defaults (specific ooc - see other defaults in parent class oooBuilder.pm)
   $self->{defcolwidth} = '0.8925inch';
 # **  $self->{defrowheight} = '0.8925inch';
-  
+
   return $self;
 }   # - - End new (Object constructor)
 
@@ -84,7 +82,7 @@ sub goto_sheet {
 
 sub set_sheet_name {
   my ($self, $name, $sheet)=@_;
-# ** process name: check valid characters en length ?!
+# TODO process name: check valid characters and length ?!
   if ($name) {
     $sheet=$self->{actsheet} if (! $sheet);
     if ($sheet>0 && $sheet <=$self->{cpars}{sheets}) {
@@ -97,7 +95,7 @@ sub set_sheet_name {
 sub set_colwidth {
   my ($self, $c, $width)=@_;
   $c=$self->_check_column ($c);
-# ** do we need to check $width ?
+# TODO do we need to check $width ?
   $self->{colwidth}{$self->{actsheet}}{$c}=$width;
   1;
 }
@@ -163,9 +161,10 @@ sub get_cell_id {
 #
 sub set_data {
   my ($self, $data, $type, $format)=@_;
-  return $self->set_data_sheet_xy(
-           $self->{actsheet}, $self->{act}{1}{c}, $self->{act}{1}{r}, 
-           $data, $type, $format);
+  return $self->set_data_sheet_xy($self->{actsheet},
+                                  $self->{act}{$self->{actsheet}}{c},
+                                  $self->{act}{$self->{actsheet}}{r},
+                                  $data, $type, $format);
 }
 
 sub set_data_xy {
@@ -175,13 +174,13 @@ sub set_data_xy {
 
 sub set_data_sheet_xy {
   my ($self, $sheet, $c, $r, $data, $type, $format)=@_;
-  
+
   # - check sheet
   if ($sheet != $self->{actsheet}) {
     $self->goto_sheet ($sheet);
     $sheet=$self->{actsheet};
   }
-  
+
   # - check cell
   if ($c ne $self->{act}{$sheet}{c} || $r != $self->{act}{$sheet}{r}) {
     $self->goto_xy ($c, $r);
@@ -201,10 +200,10 @@ sub set_data_sheet_xy {
     }
   }
   $type=$TYPES[0] if (! $ok);  # take $TYPES[0] as default type
-  
+
   # - check format
-# ** 
-  
+# TODO
+
   # - check data
   $data=$self->encode_data ($data) if ($data);
 
@@ -214,7 +213,7 @@ sub set_data_sheet_xy {
   $self->{cdata}{$sheet}{$r}{$c}{data}=$data;
   $self->{cdata}{$sheet}{$r}{$c}{style}=$self->{actstyle};
   $self->cell_update if ($self->{cpars}{autoc} || $self->{cpars}{autor});
-  1;    
+  1;
 }   # - - End set_data_sheet_xy
 
 sub set_auto_xy {
@@ -266,8 +265,8 @@ sub move_cell {
   } elsif ($direction eq 'up') {
     $self->{act}{$self->{actsheet}}{r}-=$number;
   } else {
-# ** direction unknown
-  
+# TODO direction unknown
+
   }
   $self->_cell_check;
   1;
@@ -276,7 +275,7 @@ sub move_cell {
 # - generate ooc specific, then call parent to complete generation
 sub generate {
   my ($self, $tgtfile)=@_;
-  
+
   my ($subGetMaxRange);
   $subGetMaxRange=sub {
     my ($hr, $max, @keys);
@@ -284,8 +283,8 @@ sub generate {
     @keys=sort {$a <=> $b} (keys(%$hr));
     return (pop(@keys));
   };
-    
-  # - Build content.xml  
+
+  # - Build content.xml
   $self->{contentxml}=q{<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE office:document-content PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "office.dtd">
 <office:document-content xmlns:office="http://openoffice.org/2000/office" xmlns:style="http://openoffice.org/2000/style" xmlns:text="http://openoffice.org/2000/text" xmlns:table="http://openoffice.org/2000/table" xmlns:draw="http://openoffice.org/2000/drawing" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:number="http://openoffice.org/2000/datastyle" xmlns:svg="http://www.w3.org/2000/svg" xmlns:chart="http://openoffice.org/2000/chart" xmlns:dr3d="http://openoffice.org/2000/dr3d" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="http://openoffice.org/2000/form" xmlns:script="http://openoffice.org/2000/script" office:class="spreadsheet" office:version="1.0">
@@ -294,9 +293,9 @@ sub generate {
 
   # Styles will be done later, because they depend on the content
 
-# **  $self->{rowheight}{$self->{actsheet}}{c}=$height;  still to implement
+# TODO  $self->{rowheight}{$self->{actsheet}}{c}=$height;  still to implement
 
-  
+
   # Beginning of document content
   my ($content);
   $content=q{<office:body>};
@@ -310,7 +309,7 @@ sub generate {
   $cellmaxid=0;
   $colmaxid=$rowmaxid=1;
   $colstyleids{$self->{defcolwidth}}='co1';
-  
+
   for (1 .. $self->{cpars}{sheets}) {
     $sheet=$_;
     if ($self->{sheetname}{$sheet}) {
@@ -358,7 +357,7 @@ sub generate {
     $rows=&$subGetMaxRange ($self->{cdata}{$sheet});
     for (1 .. $rows) {
       $r=$_;
-# ** row style ?
+# TODO row style ?
       $content.=q{<table:table-row table:style-name="ro1">};
       $columns=&$subGetMaxRange ($self->{cdata}{$sheet}{$r});
       for (1 .. $columns) {
@@ -388,7 +387,7 @@ qq{<table:table-cell$stylexml table:value-type="float" table:value="$data">
 qq{<table:table-cell$stylexml table:value-type="float" table:formula="$data" table:value="">
 <text:p></text:p></table:table-cell>};
         } elsif ($type eq 'others') {
-# **
+# TODO
         } else {
           $content.=q{<table:table-cell/>};
         }
@@ -397,12 +396,12 @@ qq{<table:table-cell$stylexml table:value-type="float" table:formula="$data" tab
     }
     $content.=q{</table:table>};
   }
-  
+
   # - Process used fonts and used cell styles
   my ($bold, $italic, $underline, $align, $txtcolor, $bgcolor, $font, $size);
   my ($defbold, $defitalic, $defunderline, $defalign, $deftxtcolor, $defbgcolor);
   my ($deffont, $defsize, %usedfonts, $xml, %stylexml);
-  ($defbold, $defitalic, $defunderline, $defalign, $deftxtcolor, $defbgcolor, 
+  ($defbold, $defitalic, $defunderline, $defalign, $deftxtcolor, $defbgcolor,
    $deffont, $defsize)=split(/#/, $self->{defstyle});
   foreach $style (keys(%cellstyleids)) {
     ($bold, $italic, $underline, $align, $txtcolor, $bgcolor, $font, $size)=
@@ -451,7 +450,7 @@ qq{<style:style style:name="$cellstyleids{$style}" style:family="table-cell" sty
     $xml.=q{/></style:style>};
     $stylexml{$cellstyleids{$style}}=$xml;
   }
-  
+
   # - Fonts
   $usedfonts{$deffont}=1;
   $self->{contentxml}.=q{<office:font-decls>};
@@ -459,7 +458,7 @@ qq{<style:style style:name="$cellstyleids{$style}" style:family="table-cell" sty
     $self->{contentxml}.=$self->{availfonts}{$font};
   }
   $self->{contentxml}.=q{</office:font-decls>};
-        
+
   # - col styles
   $self->{contentxml}.=qq{<office:automatic-styles>};
   foreach $width (keys(%colstyleids)) {
@@ -471,7 +470,7 @@ qq{<style:style style:name="$cellstyleids{$style}" style:family="table-cell" sty
     $self->{contentxml}.=$colstylexml{$colid};
   }
 
-# ** look at row styles ?
+# TODO look at row styles ?
 # qq{
 # <style:style style:name="ro1" style:family="table-row">
 # <style:properties fo:break-before="auto"/></style:style>
@@ -483,7 +482,7 @@ qq{<style:style style:name="$cellstyleids{$style}" style:family="table-cell" sty
     $self->{contentxml}.=$stylexml{$style};
   }
   $self->{contentxml}.=qq{</office:automatic-styles>$content</office:body></office:document-content>};
-  
+
   $self->SUPER::generate ($tgtfile);
   1;
 }
@@ -534,8 +533,8 @@ sub _cell_check {
   my ($self);
   $self=shift;
 
-# ** check sheet ($self->{actsheet})
-  
+  $self->{actsheet}=1 if ($self->{actsheet}<1);
+  $self->{actsheet}=$MAXSHEETS if ($self->{actsheet}>$MAXSHEETS);
   my $sheet=$self->{actsheet};  # only for readability
   $self->{act}{$sheet}{c}=1 if ($self->{act}{$sheet}{c}<1);
   $self->{act}{$sheet}{r}=1 if ($self->{act}{$sheet}{r}<1);
@@ -550,7 +549,7 @@ __END__
 
 =head1 NAME
 
-OpenOffice::OOCBuilder - Perl OO interface for creating 
+OpenOffice::OOCBuilder - Perl OO interface for creating
                          OpenOffice Spreadsheets
 
 =head1 SYNOPSIS
@@ -562,8 +561,8 @@ OpenOffice::OOCBuilder - Perl OO interface for creating
 
 =head1 DESCRIPTION
 
-OOCBuilder is a Perl OO interface to create OpenOffice spreadsheets. 
-Documents can be created with multiple sheets, different styles, 
+OOCBuilder is a Perl OO interface to create OpenOffice spreadsheets.
+Documents can be created with multiple sheets, different styles,
 cell types, formulas, column widths and so on.
 
 =head1 METHODS
@@ -574,8 +573,8 @@ new
 
 add_sheet
 
-  Add a new sheet within the document. Active sheet is not changed. 
-  You need to call goto_sheet (sheetnumber) to change the active 
+  Add a new sheet within the document. Active sheet is not changed.
+  You need to call goto_sheet (sheetnumber) to change the active
   sheet.
 
 goto_sheet ($sheetnumber)
@@ -584,12 +583,12 @@ goto_sheet ($sheetnumber)
 
 set_sheet_name ($name, $sheetnumber)
 
-  Set the name of the sheet. If $sheetnumber is ommitted (or 0), the 
+  Set the name of the sheet. If $sheetnumber is ommitted (or 0), the
   name of the active sheet is set.
 
 set_colwidth ($c, $width)
 
-  Set the column width for the specified column ($c). The column can 
+  Set the column width for the specified column ($c). The column can
   be a number or letter(s).
 
 set_rowheight ($r, $height)
@@ -598,7 +597,7 @@ set_rowheight ($r, $height)
 
 goto_xy ($c, $r)
 
-  Set the active cell to ($c, $r). The column can be specified by 
+  Set the active cell to ($c, $r). The column can be specified by
   number or letter(s).
 
 goto_cell ($cell_id)
@@ -629,7 +628,7 @@ get_xy
 get_cell_id
 
   Returns the cell id in the form A1, AB564, and so on. Especially handy
-  to create formulas. When you are at the start position, memorise the 
+  to create formulas. When you are at the start position, memorise the
   cell_id. See example2.pl in the examples directory.
 
 set_data ($data, $type, $format)
@@ -639,13 +638,13 @@ set_data ($data, $type, $format)
 
 set_data_xy ($c, $r, $data, $type, $format)
 
-  Same as set_data, but now with column and row to set the data in. The 
-  column can be specified as a number or with letter(s). 
+  Same as set_data, but now with column and row to set the data in. The
+  column can be specified as a number or with letter(s).
 
 set_data_sheet_xy ($sheet, $c, $r, $data, $type, $format)
 
   Same as set_data, but now with sheet, column and row to set the data in.
-  The column can be specified as a number or with letter(s). 
+  The column can be specified as a number or with letter(s).
 
 set_auto_xy ($x, $y)
 
@@ -654,7 +653,7 @@ set_auto_xy ($x, $y)
    X value: 0: no movement, negative: move left, positive: move right.
    Y valye: 0: no movement, negative: move up, positive: move down.
 
-get_auto_x 
+get_auto_x
 
   Returns the auto_x value.
 
@@ -665,7 +664,7 @@ get_auto_y
 cell_update
 
   This method is called always when entering data in a cell. If auto_x
-  or auto_y is set, if will move to another active cell. You can also 
+  or auto_y is set, if will move to another active cell. You can also
   use this method to move to another cell without entering data in the
   previous cell.
 
@@ -678,12 +677,12 @@ generate ($tgtfile)
 
   Generates the sxc file. $tgtfile is the name of the target file without
   extension. If no name is supplied, the default name will be used,
-  which is oo_doc. The target directory is '.', you can set this by 
+  which is oo_doc. The target directory is '.', you can set this by
   calling the OOBuilder method set_builddir ($builddir).
 
 Setting the style and meta data
 
-  See OpenOffice::OOBuilder, because these methods are directly 
+  See OpenOffice::OOBuilder, because these methods are directly
   inherited from the base class.
 
 =head1 EXAMPLES
@@ -696,9 +695,9 @@ L<OpenOffice::OOBuilder.pm> - the base class
 
 http://www.maygill.com/oobuilder
 
-Bug reports and questions can be sent to <oobuilder(at)maygill.com>. 
-Attention: make sure the word <oobuilder> is in the subject or 
-body of your e-mail. Otherwhise your e-mail will be taken as 
+Bug reports and questions can be sent to <oobuilder(at)maygill.com>.
+Attention: make sure the word <oobuilder> is in the subject or
+body of your e-mail. Otherwhise your e-mail will be taken as
 spam and will not be read.
 
 =head1 AUTHOR
@@ -710,6 +709,6 @@ Stefan Loones
 Copyright 2004, 2005 by Stefan Loones
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
